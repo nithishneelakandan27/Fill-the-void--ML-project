@@ -1,0 +1,177 @@
+{% extends 'predictor/base.html' %}
+{% block title %}Analysis – Fill the Void{% endblock %}
+
+{% block content %}
+<div class="page-analysis">
+
+  <div class="page-header">
+    <h2 class="page-title">
+      <span class="material-icons-round">bar_chart</span>
+      Missing Value Analysis
+    </h2>
+    <p class="page-subtitle">
+      File: <strong>{{ filename }}</strong> &nbsp;|&nbsp;
+      {{ shape.0 }} rows × {{ shape.1 }} columns &nbsp;|&nbsp;
+      <span class="missing-badge">{{ total_missing }} missing cells ({{ missing_pct_overall }}%)</span>
+    </p>
+  </div>
+
+  <!-- Summary stat cards -->
+  <div class="stat-row">
+    <div class="stat-card">
+      <span class="material-icons-round stat-icon" style="color:#1967D2;">table_rows</span>
+      <div class="stat-val">{{ shape.0 }}</div>
+      <div class="stat-label">Total Rows</div>
+    </div>
+    <div class="stat-card">
+      <span class="material-icons-round stat-icon" style="color:#137333;">view_column</span>
+      <div class="stat-val">{{ shape.1 }}</div>
+      <div class="stat-label">Columns</div>
+    </div>
+    <div class="stat-card">
+      <span class="material-icons-round stat-icon" style="color:#C5221F;">error_outline</span>
+      <div class="stat-val">{{ total_missing }}</div>
+      <div class="stat-label">Missing Cells</div>
+    </div>
+    <div class="stat-card">
+      <span class="material-icons-round stat-icon" style="color:#E37400;">percent</span>
+      <div class="stat-val">{{ missing_pct_overall }}%</div>
+      <div class="stat-label">Missing Rate</div>
+    </div>
+  </div>
+
+  <!-- Column-level missing table -->
+  <div class="content-card">
+    <div class="card-header-row">
+      <span class="material-icons-round">table_chart</span>
+      Column-level Breakdown
+    </div>
+    <div class="table-scroll">
+      <table class="analysis-table">
+        <thead>
+          <tr>
+            <th>Column</th>
+            <th>Data Type</th>
+            <th>Missing Count</th>
+            <th>Missing %</th>
+            <th>Non-Missing</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in missing_info %}
+          <tr>
+            <td class="col-name">{{ row.column }}</td>
+            <td><span class="dtype-badge">{{ row.dtype }}</span></td>
+            <td class="{% if row.missing_count > 0 %}miss-count{% endif %}">{{ row.missing_count }}</td>
+            <td>
+              <div class="pct-bar-wrap">
+                <div class="pct-bar" style="width:{{ row.missing_pct }}%"></div>
+                <span>{{ row.missing_pct }}%</span>
+              </div>
+            </td>
+            <td>{{ row.non_missing }}</td>
+            <td>
+              {% if row.missing_count == 0 %}
+                <span class="status-badge status-ok"><span class="material-icons-round" style="font-size:13px;">check</span> Complete</span>
+              {% elif row.missing_pct < 20 %}
+                <span class="status-badge status-warn"><span class="material-icons-round" style="font-size:13px;">warning</span> Low</span>
+              {% elif row.missing_pct < 50 %}
+                <span class="status-badge status-med"><span class="material-icons-round" style="font-size:13px;">error_outline</span> Medium</span>
+              {% else %}
+                <span class="status-badge status-high"><span class="material-icons-round" style="font-size:13px;">dangerous</span> High</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  {% if bar_chart %}
+  <div class="content-card">
+    <div class="card-header-row">
+      <span class="material-icons-round">bar_chart</span>
+      Missing Values – Bar Chart
+    </div>
+    <img src="data:image/png;base64,{{ bar_chart }}" class="chart-img" alt="Bar chart of missing values" />
+  </div>
+  {% endif %}
+
+  {% if heatmap %}
+  <div class="content-card">
+    <div class="card-header-row">
+      <span class="material-icons-round">grid_on</span>
+      Missing Values – Heatmap
+    </div>
+    <img src="data:image/png;base64,{{ heatmap }}" class="chart-img" alt="Missing value heatmap" />
+    <p class="chart-note">🔵 Blue = missing &nbsp; ⬜ White = present</p>
+  </div>
+  {% endif %}
+
+  <!-- Preview -->
+  <div class="content-card">
+    <div class="card-header-row">
+      <span class="material-icons-round">table_view</span>
+      Dataset Preview (first 20 rows)
+      <span style="font-size:12px;margin-left:auto;color:#80868B;">[NaN = missing]</span>
+    </div>
+    <div class="table-scroll preview-raw">
+      {{ preview_html|safe }}
+    </div>
+  </div>
+
+  <!-- Action -->
+  <div class="action-bar">
+    {% if total_missing == 0 %}
+      <div class="alert-info-box">
+        <span class="material-icons-round">check_circle</span>
+        Great news! Your dataset has <strong>no missing values</strong>. No imputation needed.
+      </div>
+    {% else %}
+    <form method="post" action="{% url 'run_prediction' %}" id="predict-form">
+      {% csrf_token %}
+      <button type="submit" class="btn-primary-lg" id="btn-predict">
+        <span class="material-icons-round">model_training</span>
+        Run ML Prediction
+      </button>
+    </form>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- ── Loading overlay ── -->
+<div class="loading-overlay" id="loading-overlay" style="display:none;">
+  <div class="loading-card">
+    <div class="spinner"></div>
+    <div class="loading-messages" id="loading-message">Preparing model…</div>
+    <p class="loading-sub">This may take a few seconds</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const messages = [
+  'Reading dataset…',
+  'Detecting column types…',
+  'Training KNN Imputer…',
+  'Training Random Forest model…',
+  'Predicting missing values…',
+  'Finalising results…'
+];
+let msgIdx = 0;
+
+document.getElementById('predict-form')?.addEventListener('submit', function() {
+  document.getElementById('loading-overlay').style.display = 'flex';
+  const el = document.getElementById('loading-message');
+  setInterval(() => {
+    msgIdx = (msgIdx + 1) % messages.length;
+    el.textContent = messages[msgIdx];
+  }, 1500);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'predictor/base.html' %}
+{% block title %}Home – Fill the Void{% endblock %}
+
+{% block content %}
+<div class="page-home">
+
+  <!-- Hero section -->
+  <div class="hero-card">
+    <div class="hero-icon-wrap">
+      <span class="material-icons-round hero-icon">auto_fix_high</span>
+    </div>
+    <h1 class="hero-title">Fill the Void</h1>
+    <p class="hero-subtitle">Smart Data Cleaner</p>
+    <p class="hero-desc">
+      Upload any messy dataset and let machine learning automatically detect and
+      fill missing values using <strong>KNN Imputation</strong> and
+      <strong>Random Forest Regression</strong> — then download the cleaned result.
+    </p>
+    <a href="{% url 'upload' %}" class="btn-primary-lg" id="btn-upload-hero">
+      <span class="material-icons-round">cloud_upload</span>
+      Upload Dataset
+    </a>
+  </div>
+
+  <!-- Feature cards (Google Tasks-style list) -->
+  <div class="section-title">How it works</div>
+  <div class="feature-list">
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap step-1">
+        <span class="material-icons-round">upload_file</span>
+      </div>
+      <div class="feature-body">
+        <div class="feature-title">1 — Upload Dataset</div>
+        <div class="feature-desc">Drag & drop a CSV or Excel file. Supports files up to 10 MB with unlimited columns.</div>
+      </div>
+      <span class="material-icons-round feature-arrow">chevron_right</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap step-2">
+        <span class="material-icons-round">analytics</span>
+      </div>
+      <div class="feature-body">
+        <div class="feature-title">2 — Analyse Missing Values</div>
+        <div class="feature-desc">View a breakdown: how many values are missing per column, with a heatmap and bar chart.</div>
+      </div>
+      <span class="material-icons-round feature-arrow">chevron_right</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap step-3">
+        <span class="material-icons-round">model_training</span>
+      </div>
+      <div class="feature-body">
+        <div class="feature-title">3 — Run ML Prediction</div>
+        <div class="feature-desc">Our ML pipeline trains a model on your data and predicts every missing cell intelligently.</div>
+      </div>
+      <span class="material-icons-round feature-arrow">chevron_right</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon-wrap step-4">
+        <span class="material-icons-round">download</span>
+      </div>
+      <div class="feature-body">
+        <div class="feature-title">4 — Download Clean Data</div>
+        <div class="feature-desc">See filled values highlighted in the results table, then download the cleaned CSV.</div>
+      </div>
+      <span class="material-icons-round feature-arrow">chevron_right</span>
+    </div>
+
+  </div>
+
+  <!-- Tech badges -->
+  <div class="tech-row">
+    <span class="tech-badge"><span class="material-icons-round" style="font-size:13px;">science</span> scikit-learn</span>
+    <span class="tech-badge"><span class="material-icons-round" style="font-size:13px;">table_chart</span> pandas</span>
+    <span class="tech-badge"><span class="material-icons-round" style="font-size:13px;">forest</span> Random Forest</span>
+    <span class="tech-badge"><span class="material-icons-round" style="font-size:13px;">grain</span> KNN Imputer</span>
+    <span class="tech-badge"><span class="material-icons-round" style="font-size:13px;">web</span> Django</span>
+  </div>
+
+</div>
+{% endblock %}

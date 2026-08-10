@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Fill the Void – Smart Data Cleaner{% endblock %}</title>
+  <meta name="description" content="ML-powered missing value prediction and dataset cleaning tool." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+
+  <!-- App CSS -->
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'predictor/style.css' %}" />
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ═══════════════════ TOP BAR ═══════════════════ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <span class="material-icons-round brand-icon">auto_fix_high</span>
+    <span class="brand-name">Fill the Void <span class="brand-sub">Smart Data Cleaner</span></span>
+  </div>
+  <div class="topbar-actions">
+    {% if request.session.filename %}
+      <span class="session-badge">
+        <span class="material-icons-round" style="font-size:14px;vertical-align:middle;">description</span>
+        {{ request.session.filename }}
+      </span>
+    {% endif %}
+    <a href="{% url 'clear_session' %}" class="btn-icon-sm" title="Start over">
+      <span class="material-icons-round">refresh</span>
+    </a>
+  </div>
+</header>
+
+<div class="app-layout">
+
+  <!-- ═══════════ SIDEBAR ═══════════ -->
+  <nav class="sidebar">
+    <ul class="sidebar-menu">
+
+      <li class="sidebar-item {% if active == 'home' %}active{% endif %}">
+        <a href="{% url 'home' %}" class="sidebar-link">
+          <span class="material-icons-round">home</span>
+          <span class="link-label">Home</span>
+        </a>
+      </li>
+
+      <li class="sidebar-item {% if active == 'upload' %}active{% endif %}">
+        <a href="{% url 'upload' %}" class="sidebar-link">
+          <span class="material-icons-round">cloud_upload</span>
+          <span class="link-label">Upload Dataset</span>
+        </a>
+      </li>
+
+      <li class="sidebar-item {% if active == 'analysis' %}active{% endif %} {% if not request.session.df_original %}disabled{% endif %}">
+        <a href="{% if request.session.df_original %}{% url 'analysis' %}{% else %}#{% endif %}" class="sidebar-link">
+          <span class="material-icons-round">bar_chart</span>
+          <span class="link-label">Analysis</span>
+        </a>
+      </li>
+
+      <li class="sidebar-item {% if active == 'results' %}active{% endif %} {% if not request.session.df_cleaned %}disabled{% endif %}">
+        <a href="{% if request.session.df_cleaned %}{% url 'results' %}{% else %}#{% endif %}" class="sidebar-link">
+          <span class="material-icons-round">task_alt</span>
+          <span class="link-label">Results</span>
+        </a>
+      </li>
+
+    </ul>
+
+    <!-- Sidebar footer -->
+    <div class="sidebar-footer">
+      <span class="material-icons-round" style="font-size:18px;color:#80868B;">science</span>
+      <span style="font-size:11px;color:#80868B;margin-left:6px;">FOML Project</span>
+    </div>
+  </nav>
+
+  <!-- ═══════════ MAIN CONTENT ═══════════ -->
+  <main class="main-content">
+
+    <!-- Flash messages -->
+    {% if messages %}
+      <div class="messages-container">
+        {% for msg in messages %}
+          <div class="alert-toast alert-{{ msg.tags }}">
+            <span class="material-icons-round toast-icon">
+              {% if msg.tags == 'error' %}error{% elif msg.tags == 'success' %}check_circle{% elif msg.tags == 'warning' %}warning{% else %}info{% endif %}
+            </span>
+            {{ msg }}
+            <button class="toast-close" onclick="this.parentElement.remove()">
+              <span class="material-icons-round">close</span>
+            </button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+  </main>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,123 @@
+{% extends 'predictor/base.html' %}
+{% block title %}Upload Dataset – Fill the Void{% endblock %}
+
+{% block content %}
+<div class="page-upload">
+
+  <div class="page-header">
+    <h2 class="page-title">
+      <span class="material-icons-round">cloud_upload</span>
+      Upload Dataset
+    </h2>
+    <p class="page-subtitle">Supports CSV and Excel files (.csv, .xlsx, .xls) up to 10 MB</p>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="upload-form" action="{% url 'upload' %}">
+    {% csrf_token %}
+
+    <!-- Drop zone -->
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" name="dataset" id="file-input" accept=".csv,.xlsx,.xls" hidden />
+
+      <div class="drop-icon-wrap" id="drop-icon-default">
+        <span class="material-icons-round drop-icon">upload_file</span>
+      </div>
+
+      <div class="drop-icon-wrap" id="drop-icon-ready" style="display:none;">
+        <span class="material-icons-round drop-icon ready">check_circle</span>
+      </div>
+
+      <p class="drop-title" id="drop-title">Drag & drop your file here</p>
+      <p class="drop-hint" id="drop-hint">or click to browse</p>
+
+      <p class="drop-file-name" id="file-name-display" style="display:none;"></p>
+
+      <label for="file-input" class="btn-browse" id="btn-browse">
+        <span class="material-icons-round">folder_open</span>
+        Browse Files
+      </label>
+    </div>
+
+    <!-- Preview placeholder -->
+    <div id="preview-section" style="display:none;" class="preview-section">
+      <div class="preview-header">
+        <span class="material-icons-round">table_view</span>
+        Dataset Preview (first 20 rows)
+      </div>
+      <div class="preview-scroll" id="preview-table-wrap">
+        <!-- Filled by JS after file read -->
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="upload-actions">
+      <button type="submit" class="btn-primary" id="btn-analyze" disabled>
+        <span class="material-icons-round">analytics</span>
+        Analyse Data
+      </button>
+      <span class="upload-note" id="upload-note">Select a file to enable analysis</span>
+    </div>
+
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const dropZone   = document.getElementById('drop-zone');
+const fileInput  = document.getElementById('file-input');
+const fileNameEl = document.getElementById('file-name-display');
+const dropTitle  = document.getElementById('drop-title');
+const dropHint   = document.getElementById('drop-hint');
+const iconDefault = document.getElementById('drop-icon-default');
+const iconReady   = document.getElementById('drop-icon-ready');
+const btnBrowse  = document.getElementById('btn-browse');
+const btnAnalyze = document.getElementById('btn-analyze');
+const uploadNote = document.getElementById('upload-note');
+
+function setFile(file) {
+  if (!file) return;
+  fileNameEl.textContent = '📄 ' + file.name + '  (' + (file.size / 1024).toFixed(1) + ' KB)';
+  fileNameEl.style.display = 'block';
+  iconDefault.style.display = 'none';
+  iconReady.style.display   = 'block';
+  dropTitle.textContent = 'File ready to upload!';
+  dropHint.style.display = 'none';
+  btnBrowse.textContent  = 'Change File';
+  btnAnalyze.disabled    = false;
+  uploadNote.textContent = 'Click "Analyse Data" to continue';
+  uploadNote.style.color = '#1967D2';
+}
+
+// drag & drop
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    setFile(file);
+  }
+});
+
+fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
+
+// Click on drop zone opens file picker (except on the label itself)
+dropZone.addEventListener('click', e => {
+  if (e.target.tagName !== 'LABEL' && !e.target.closest('label')) {
+    fileInput.click();
+  }
+});
+
+// Show loading state on submit
+document.getElementById('upload-form').addEventListener('submit', () => {
+  btnAnalyze.innerHTML = '<span class="material-icons-round spin">sync</span> Uploading…';
+  btnAnalyze.disabled = true;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'predictor/base.html' %}
+{% block title %}Results – Fill the Void{% endblock %}
+
+{% block content %}
+<div class="page-results">
+
+  <div class="page-header">
+    <h2 class="page-title">
+      <span class="material-icons-round">task_alt</span>
+      Cleaned Dataset Results
+    </h2>
+    <p class="page-subtitle">
+      File: <strong>{{ filename }}</strong> &nbsp;|&nbsp;
+      {{ df_shape.0 }} rows × {{ df_shape.1 }} columns
+    </p>
+  </div>
+
+  <!-- Summary bar -->
+  <div class="result-summary-bar">
+    <div class="rsb-item">
+      <span class="material-icons-round" style="color:#137333;">check_circle</span>
+      <div>
+        <div class="rsb-val">{{ total_filled }}</div>
+        <div class="rsb-label">Values Filled</div>
+      </div>
+    </div>
+    <div class="rsb-item">
+      <span class="material-icons-round" style="color:#1967D2;">model_training</span>
+      <div>
+        <div class="rsb-val">{{ metrics_list|length }}</div>
+        <div class="rsb-label">Columns Imputed</div>
+      </div>
+    </div>
+    <div class="rsb-item">
+      <span class="material-icons-round" style="color:#E37400;">science</span>
+      <div>
+        <div class="rsb-val">ML</div>
+        <div class="rsb-label">Method Used</div>
+      </div>
+    </div>
+    <div class="rsb-item">
+      <a href="{% url 'download' %}" class="btn-download" id="btn-download">
+        <span class="material-icons-round">download</span>
+        Download Cleaned CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- Model Performance / Metrics -->
+  {% if metrics_list %}
+  <div class="content-card">
+    <div class="card-header-row">
+      <span class="material-icons-round">insights</span>
+      Imputation Methods & Model Performance
+    </div>
+    <div class="table-scroll">
+      <table class="analysis-table">
+        <thead>
+          <tr>
+            <th>Column</th>
+            <th>Type</th>
+            <th>Method Used</th>
+            <th>RMSE</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in metrics_list %}
+          <tr>
+            <td class="col-name">{{ m.column }}</td>
+            <td><span class="dtype-badge">{{ m.type }}</span></td>
+            <td>
+              {% if 'Random Forest' in m.method %}
+                <span class="method-badge method-rf">🌲 {{ m.method }}</span>
+              {% elif 'KNN' in m.method %}
+                <span class="method-badge method-knn">🔵 {{ m.method }}</span>
+              {% else %}
+                <span class="method-badge method-other">📊 {{ m.method }}</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if m.rmse %}
+                <span class="rmse-val">{{ m.rmse }}</span>
+              {% else %}
+                <span style="color:#80868B;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Legend -->
+  <div class="legend-row">
+    <span class="legend-item">
+      <span class="legend-dot filled-dot"></span> ML-filled values (highlighted)
+    </span>
+    <span class="legend-item">
+      <span class="legend-dot normal-dot"></span> Original values
+    </span>
+  </div>
+
+  <!-- Results table -->
+  <div class="content-card">
+    <div class="card-header-row">
+      <span class="material-icons-round">table_view</span>
+      Cleaned Dataset (first 50 rows)
+      <span style="font-size:12px;margin-left:auto;color:#80868B;">🟦 = filled by ML</span>
+    </div>
+    <div class="table-scroll result-table-wrap">
+      {{ rows_html|safe }}
+    </div>
+  </div>
+
+  <!-- Bottom actions -->
+  <div class="action-bar">
+    <a href="{% url 'download' %}" class="btn-primary-lg" id="btn-download-bottom">
+      <span class="material-icons-round">download</span>
+      Download Cleaned CSV
+    </a>
+    <a href="{% url 'upload' %}" class="btn-secondary-lg">
+      <span class="material-icons-round">cloud_upload</span>
+      Upload Another File
+    </a>
+  </div>
+
+</div>
+{% endblock %}
