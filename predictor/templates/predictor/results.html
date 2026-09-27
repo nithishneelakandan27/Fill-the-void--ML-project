@@ -51,7 +51,7 @@
   <div class="content-card">
     <div class="card-header-row">
       <span class="material-icons-round">insights</span>
-      Imputation Methods & Model Performance
+      Imputation Strategy & Performance Analysis
     </div>
     <div class="table-scroll">
       <table class="analysis-table">
@@ -59,8 +59,10 @@
           <tr>
             <th>Column</th>
             <th>Type</th>
-            <th>Method Used</th>
-            <th>RMSE</th>
+            <th>Selected Strategy</th>
+            <th>Imputed / Remaining</th>
+            <th>Evaluation Metrics</th>
+            <th>Explanation</th>
           </tr>
         </thead>
         <tbody>
@@ -73,13 +75,54 @@
                 <span class="method-badge method-rf">🌲 {{ m.method }}</span>
               {% elif 'KNN' in m.method %}
                 <span class="method-badge method-knn">🔵 {{ m.method }}</span>
+              {% elif 'Iterative' in m.method %}
+                <span class="method-badge method-other" style="background:#E8F0FE;color:#1967D2;">🔄 {{ m.method }}</span>
+              {% elif 'Mode' in m.method or 'Mean' in m.method or 'Median' in m.method %}
+                <span class="method-badge method-other">📊 {{ m.method }}</span>
+              {% elif 'Unable to impute' in m.method %}
+                <span class="method-badge" style="background:#FCE8E6;color:#C5221F;font-weight:600;">⚠️ {{ m.method }}</span>
               {% else %}
                 <span class="method-badge method-other">📊 {{ m.method }}</span>
               {% endif %}
             </td>
             <td>
-              {% if m.rmse %}
-                <span class="rmse-val">{{ m.rmse }}</span>
+              <span style="font-weight:500;">{{ m.imputed_count }} filled</span>
+              {% if m.remaining_missing > 0 %}
+                <span style="font-size:12px;color:#C5221F;margin-left:4px;">({{ m.remaining_missing }} remaining)</span>
+              {% else %}
+                <span style="font-size:12px;color:#137333;margin-left:4px;">(0 remaining)</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if m.evaluation %}
+                {% if m.evaluation.mae is not None %}
+                  <span class="rmse-val" title="Mean Absolute Error">MAE: {{ m.evaluation.mae|floatformat:4 }}</span>
+                {% endif %}
+                {% if m.evaluation.rmse is not None %}
+                  <span class="rmse-val" style="margin-left:4px;" title="Root Mean Squared Error">RMSE: {{ m.evaluation.rmse|floatformat:4 }}</span>
+                {% endif %}
+                {% if m.evaluation.accuracy is not None %}
+                  <span class="rmse-val" title="Accuracy">Acc: {{ m.evaluation.accuracy|floatformat:4 }}</span>
+                {% endif %}
+              {% elif m.rmse %}
+                <span class="rmse-val">RMSE: {{ m.rmse }}</span>
+              {% elif m.evaluation_error %}
+                <span style="color:#80868B;font-size:12px;" title="{{ m.evaluation_error }}">Evaluation skipped</span>
+              {% else %}
+                <span style="color:#80868B;">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if m.explanation %}
+                <span style="font-size:12px;color:#3C4043;">
+                  {% if m.explanation.strategy %}
+                    Selected {{ m.explanation.strategy }} for {{ m.explanation.target_column }}.
+                  {% elif m.explanation.error %}
+                    {{ m.explanation.error }}
+                  {% else %}
+                    Imputation completed successfully.
+                  {% endif %}
+                </span>
               {% else %}
                 <span style="color:#80868B;">—</span>
               {% endif %}
